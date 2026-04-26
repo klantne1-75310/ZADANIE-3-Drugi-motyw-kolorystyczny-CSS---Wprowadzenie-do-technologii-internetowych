@@ -10,13 +10,11 @@ form.addEventListener("submit", function(e) {
     let email = document.getElementById("email").value.trim();
     let wiadomosc = document.getElementById("wiadomosc").value.trim();
 
-    // reset błędów
     document.getElementById("imieError").textContent = "";
     document.getElementById("nazwiskoError").textContent = "";
     document.getElementById("emailError").textContent = "";
     document.getElementById("wiadomoscError").textContent = "";
 
-//  error jak nie ma imienia labo cyrfry
     if (imie === "") {
         document.getElementById("imieError").textContent = "Imię jest wymagane";
         valid = false;
@@ -25,7 +23,6 @@ form.addEventListener("submit", function(e) {
         valid = false;
     }
 
-//  error jak złe nazwisko
     if (nazwisko === "") {
         document.getElementById("nazwiskoError").textContent = "Nazwisko jest wymagane";
         valid = false;
@@ -34,9 +31,7 @@ form.addEventListener("submit", function(e) {
         valid = false;
     }
 
-    //  error jak zły email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (email === "") {
         document.getElementById("emailError").textContent = "Email jest wymagany";
         valid = false;
@@ -44,7 +39,7 @@ form.addEventListener("submit", function(e) {
         document.getElementById("emailError").textContent = "Niepoprawny adres email";
         valid = false;
     }
-    //  error jak  nie ma wiadomości
+
     if (wiadomosc === "") {
         document.getElementById("wiadomoscError").textContent = "Wiadomość jest wymagana";
         valid = false;
@@ -86,4 +81,95 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+
+    fetch('dane.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Błąd pobierania danych');
+            return response.json();
+        })
+        .then(data => {
+
+            const kontaktDiv = document.getElementById('kontaktContainer');
+            if (kontaktDiv) {
+                kontaktDiv.innerHTML = `
+                    <p>Email: <a href="mailto:${data.kontakt.email}">${data.kontakt.email}</a></p>
+                    <p>Telefon: <a href="tel:${data.kontakt.telefon}">${data.kontakt.telefon}</a></p>
+                    <p>Miasto: ${data.kontakt.miasto}</p>
+                    <p>Github: <a href="${data.kontakt.github}" target="_blank" rel="noopener noreferrer">${data.kontakt.githubNazwa}</a></p>
+                    <p>LinkedIn: <a href="${data.kontakt.linkedin}" target="_blank" rel="noopener noreferrer">${data.kontakt.linkedinNazwa}</a></p>
+                `;
+            }
+
+            const oMnieDiv = document.getElementById('oMnieContainer');
+            if (oMnieDiv) {
+                oMnieDiv.innerHTML = `
+                    <img src="${data.oMnie.zdjecie}" alt="Jan Kowalski - zdjęcie profilowe" width="300" height="300">
+                    <p>${data.oMnie.opis1}</p>
+                    <p>${data.oMnie.opis2}</p>
+                `;
+            }
+
+            const skillsList = document.getElementById('skillsList');
+            if (skillsList) {
+                data.umiejetnosci.forEach(skill => {
+                    const li = document.createElement('li');
+                    li.textContent = skill;
+                    skillsList.appendChild(li);
+                });
+            }
+
+            const doswiadczenieDiv = document.getElementById('doswiadczenieContainer');
+            if (doswiadczenieDiv) {
+                data.doswiadczenie.forEach(job => {
+                    const article = document.createElement('article');
+                    article.innerHTML = `
+                        <h3>${job.tytul}</h3>
+                        <p>${job.opis}</p>
+                    `;
+                    doswiadczenieDiv.appendChild(article);
+                });
+            }
+
+            const edukacjaDiv = document.getElementById('edukacjaContainer');
+            if (edukacjaDiv) {
+                const articleSzkola = document.createElement('article');
+                articleSzkola.innerHTML = `
+                    <h3>${data.edukacja.szkola}</h3>
+                    <p>${data.edukacja.stopien}</p>
+                `;
+                edukacjaDiv.appendChild(articleSzkola);
+
+                const articleKursy = document.createElement('article');
+                articleKursy.innerHTML = '<h3>Ukończone kursy</h3>';
+                const ul = document.createElement('ul');
+                data.edukacja.kursy.forEach(kurs => {
+                    const li = document.createElement('li');
+                    li.textContent = kurs;
+                    ul.appendChild(li);
+                });
+                articleKursy.appendChild(ul);
+                edukacjaDiv.appendChild(articleKursy);
+            }
+
+            const projectsList = document.getElementById('projectsList');
+            if (projectsList) {
+                data.projekty.forEach(proj => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = proj.link;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = proj.nazwa;
+                    li.appendChild(a);
+                    if (proj.opis && proj.opis.trim() !== '') {
+                        li.appendChild(document.createTextNode(` – ${proj.opis}`));
+                    }
+                    projectsList.appendChild(li);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Wystąpił problem z wczytaniem danych JSON:', error);
+        });
 });
